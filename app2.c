@@ -26,13 +26,42 @@ int resetBit(int number, int index) {
     return number &~(1 << index);
 }
 
+int s21_sub(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
+    int credit = 0;
+    for (int b = 0; b < 3; b++) {
+        for (int i = 0; i < 32; i++) {
+            int check_value_1 = isSetBit(value_1.bits[b], i);
+            int check_value_2 = isSetBit(value_2.bits[b], i);
+
+            if (!credit && check_value_1 && !check_value_2) {
+                result->bits[b] = setBit(result->bits[b], i);
+            } else if (credit && check_value_1 && !check_value_2) {
+                credit = 0;
+            } else if (!credit && !check_value_1 && check_value_2) {
+                result->bits[b] = setBit(result->bits[b], i);
+                credit = 1;
+            } else if (credit && !check_value_1 && !check_value_2) {
+                result->bits[b] = setBit(result->bits[b], i);
+            } else if (credit && check_value_1 && check_value_2) {
+                result->bits[b] = setBit(result->bits[b], i);
+            }
+        }
+    }
+    return 0;
+}
+
 
 int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
     int newRank = 0;
     for (int b = 0; b < 3; b++) {
         for (int i = 0; i < 32; i++) {
-            int twoUnits = isSetBit(value_1.bits[b], i) == 1 && isSetBit(value_2.bits[b], i) == 1;
-            int twoZero = isSetBit(value_1.bits[b], i) == 0 && isSetBit(value_2.bits[b], i) == 0;
+
+            int check_value_1 = isSetBit(value_1.bits[b], i);
+            int check_value_2 = isSetBit(value_2.bits[b], i);
+
+            int twoUnits = check_value_1 == 1 && check_value_2 == 1;
+            int twoZero = check_value_1 == 0 && check_value_2 == 0;
+
             if (newRank && twoZero ) {
                 result->bits[b] = setBit(result->bits[b], i);
                 newRank = 0;
@@ -48,14 +77,18 @@ int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
             }
         }
     }
+    return 0;
 }
 
+
+
+
 int main() {
-    s21_decimal x = {1835008, 0, 0, 0};
-    s21_decimal y = {0, 0, 0, 0};
+    s21_decimal x = {45234523, 19, 0, 0};
+    s21_decimal y = {435435, 15, 0, 0};
     // s21_decimal r = y;
     s21_decimal z = {0,0,0,0};
-    s21_add(x, y, &z);
+    s21_sub(x, y, &z);
     for (int i = 2; i > -1; i--) {
         for (int n = 31; n > -1; n--) {
         printf("%d", isSetBit(z.bits[i], n));
@@ -66,4 +99,3 @@ int main() {
     return 0;
 }
 
-00000000 00011100 0000000000000000
