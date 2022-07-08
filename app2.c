@@ -6,6 +6,7 @@ typedef struct {
     unsigned int bits[4];
 } s21_decimal;
 
+void scaling_factor(unsigned value_1, int *arr);
 // провекрка бита
 unsigned isSetBit(int number, int index) {
     return (number&(1<<index))!=0;
@@ -26,6 +27,22 @@ int resetBit(int number, int index) {
     return number &~(1 << index);
 }
 
+void check_scaling(s21_decimal value_1, s21_decimal value_2) {
+    int value_1_arr[2];
+    int value_2_arr[2];
+    scaling_factor(value_1.bits[3], value_1_arr);
+    scaling_factor(value_1.bits[3], value_2_arr);
+    if (value_1_arr[1] != value_2_arr[1]) {
+        // умножать на 10 пока стпень не станет одинаковой
+    }
+
+    if (value_1_arr[0] != value_2_arr[0]) {
+        // менять действие на противоположное
+    }
+
+
+}
+
 void scaling_factor(unsigned value_1, int *arr) {
     unsigned int scaling = 0;
     unsigned int count = 0;
@@ -35,13 +52,12 @@ void scaling_factor(unsigned value_1, int *arr) {
         }
         count++;
     }
-    printf("%u\n", value_1);
 
     arr[0] = isSetBit(value_1, 31);
     arr[1] = scaling;
 }
 
-int shift(s21_decimal value_1, s21_decimal *result, int bits) {
+int shift_left(s21_decimal value_1, s21_decimal *result, int bits) {
     for (int i = 0; i < 2; i++) {
         result->bits[i] = value_1.bits[i] << bits;
     }
@@ -49,10 +65,29 @@ int shift(s21_decimal value_1, s21_decimal *result, int bits) {
     int count = 0;
 
     for (int b = 0; b < 2; b++) {
+        int count = 0;
         for (int i = 32 - bits; i < 32; i++) {
             if (isSetBit(value_1.bits[b], i)) {
                 result->bits[b+1] = setBit(result->bits[b+1], count);
                 count++;
+            }
+        }
+    }
+
+    return 0;
+}
+
+int shift_right(s21_decimal value_1, s21_decimal *result, int bits) {
+    for (int i = 0; i < 2; i++) {
+        result->bits[i] = value_1.bits[i] >> bits;
+    }
+
+    for (int b = 2; b > 0; b--) {
+        int count = 31;
+        for (int i = bits; i > -1; i--) {
+            if (isSetBit(value_1.bits[b], i)) {
+                result->bits[b-1] = setBit(result->bits[b-1], count);
+                count--;
             }
         }
     }
@@ -124,21 +159,22 @@ int s21_add(s21_decimal value_1, s21_decimal value_2, s21_decimal *result) {
 }
 
 int main() {
-    s21_decimal x = {maxInt, 0, 0, 1835008};
-    s21_decimal y = {0, 0, 0, 0};
+    s21_decimal x = {maxInt, maxInt, 0, 1835008};
+    s21_decimal y = {1, 0, 0, 0};
     int arr[2];
     // s21_decimal r = y;
     s21_decimal z = {0,0,0,2148499456};
     s21_sub(x, y, &z);
     scaling_factor(z.bits[3], arr);
-    printf("%u %u", arr[0], arr[1]);
+    shift_right(x, &z, 3);
+    // printf("%u %u", arr[0], arr[1]);
     // shift(x, &z, 31);
-    // for (int i = 3; i > -1; i--) {
-    //     for (int n = 31; n > -1; n--) {
-    //     printf("%d", isSetBit(z.bits[i], n));
-    //     }
-    //     printf(" ");
-    // }
-    // printf("\n");
+    for (int i = 3; i > -1; i--) {
+        for (int n = 31; n > -1; n--) {
+        printf("%d", isSetBit(z.bits[i], n));
+        }
+        printf(" ");
+    }
+    printf("\n");
     return 0;
 }
